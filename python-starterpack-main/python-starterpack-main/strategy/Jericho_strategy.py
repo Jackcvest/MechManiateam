@@ -66,7 +66,7 @@ class TestSetupStrategy(Strategy):
                 if (not has_visited) and (not is_obstacle):
                     position_queue.append(new_tuple)
                     visited_set.add(coord_str)
-        print(f"{start.x},{start.y} is moving to {return_position.x},{return_position.y} for goal {goal.x},{goal.y}")
+        #print(f"{start.x},{start.y} is moving to {return_position.x},{return_position.y} for goal {goal.x},{goal.y}")
         return return_position
 
     def decide_character_classes(
@@ -195,10 +195,10 @@ class TestSetupStrategy(Strategy):
 
         is_in_setup = (game_state.turn < 30)
         
-        print(f"Turn {game_state.turn}: -------------------------------------")
+        #print(f"Turn {game_state.turn}: -------------------------------------")
         if is_in_setup:
             choices = self.set_up_initial_barricade(possible_moves, game_state)
-            print(len(choices))
+            #print(len(choices))
         else:
             choices = self.simple_run(possible_moves, game_state)
 

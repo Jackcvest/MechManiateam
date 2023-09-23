@@ -14,14 +14,13 @@ from game.util.position import Position
 
 class VestZombieStrategy(Strategy):
 
-    
     def regular_move(
-            self, 
-            possible_moves: dict[str, list[MoveAction]], 
-            game_state: GameState
-            ) -> list[MoveAction]:
+        self, 
+        possible_moves: dict[str, list[MoveAction]],
+        game_state: GameState
+        ) -> list[MoveAction]:
         choices = []
-
+        print("goodbye")
         for [character_id, moves] in possible_moves.items():
             if len(moves) == 0:  # No choices... Next!
                 continue
@@ -57,11 +56,10 @@ class VestZombieStrategy(Strategy):
 
     def set_up_initial_diamond(
                 self, 
-                moves: list[MoveAction],
                 possible_moves: dict[str, list[MoveAction]],
-                character_id: str,
                 game_state: GameState
         ) -> MoveAction:
+            print("hello")
             p1 = Position(50, 47)
             p2 = Position(45, 42)
             p3 = Position(55, 42)
@@ -94,15 +92,14 @@ class VestZombieStrategy(Strategy):
                             
     def decide_moves(
         self, 
-        moves: list[MoveAction],
         possible_moves: dict[str, list[MoveAction]],
-        character_id: str,
         game_state: GameState,        
         ) -> MoveAction:
-        if GameState.turn < 20:
-            choices = self.set_up_initial_diamond()
+        print("entering decidemoves")
+        if game_state.turn < 20:
+            choices = self.set_up_initial_diamond(possible_moves, game_state)
         else:
-            choices = self.regular_move()
+            choices = self.regular_move(possible_moves, game_state)
         return choices
 
 

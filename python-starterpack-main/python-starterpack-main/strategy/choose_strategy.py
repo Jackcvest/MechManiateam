@@ -11,6 +11,6 @@ def choose_strategy(is_zombie: bool) -> Strategy:
     #
     # For example:
     if is_zombie:
-        return RandomStrategy()
+        return VestZombieStrategy()
     else:
         return TestSetupStrategy()
