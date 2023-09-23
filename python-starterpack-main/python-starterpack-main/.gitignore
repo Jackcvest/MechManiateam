@@ -1,0 +1,6 @@
+__pycache__/
+engine/
+game/
+gamelogs/
+logs/
+network/
