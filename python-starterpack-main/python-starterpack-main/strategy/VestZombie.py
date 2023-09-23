@@ -61,10 +61,10 @@ class VestZombieStrategy(Strategy):
                 coord_str = f"{p.x},{p.y}"
                 has_visited = coord_str in visited_set
                 is_obstacle = coord_str in obstacle_set
-                if (not has_visited) and (not is_obstacle):
+                valid_coords = p.x >= 0 and p.x < 100 and p.y >= 0 and p.y < 100
+                if (not has_visited) and (not is_obstacle) and valid_coords:
                     position_queue.append(new_tuple)
                     visited_set.add(coord_str)
-        #print(f"{start.x},{start.y} is moving to {return_position.x},{return_position.y} for goal {goal.x},{goal.y}")
         return return_position
 
     def regular_move(
@@ -73,7 +73,7 @@ class VestZombieStrategy(Strategy):
         game_state: GameState
         ) -> list[MoveAction]:
         choices = []
-        print("goodbye")
+        character_id_set = set({})
         for [character_id, moves] in possible_moves.items():
             if len(moves) == 0:  # No choices... Next!
                 continue
@@ -81,29 +81,26 @@ class VestZombieStrategy(Strategy):
             pos = game_state.characters[character_id].position  # position of the zombie
             closest_human_pos = pos  # default position is zombie's pos
             closest_human_distance = 1984  # large number, map isn't big enough to reach this distance
-
+            closest_human_id = "a"
             # Iterate through every human to find the closest one
             for c in game_state.characters.values():
-                if c.is_zombie:
-                    continue  # Fellow zombies are frens :D, ignore them
+                if len(character_id_set) < 13:
+                    if c.is_zombie or c.id in character_id_set:
+                        continue  # Fellow zombies are frens :D, ignore them
+                else:
+                    if c.is_zombie:
+                        continue
 
                 distance = abs(c.position.x - pos.x) + abs(c.position.y - pos.y) # calculate manhattan distance between human and zombie
                 if distance < closest_human_distance:  # If distance is closer than current closest, replace it!
                     closest_human_pos = c.position
                     closest_human_distance = distance
+                    closest_human_id = c.id
+            character_id_set.add(closest_human_id)
+            new_pos = self.simple_bfs(closest_human_pos, pos, game_state, 5)
+            new_action = MoveAction(character_id, new_pos)
 
-            # Move as close to the human as possible
-            move_distance = 1337  # Distance between the move action's destination and the closest human
-            move_choice = moves[0]  # The move action the zombie will be taking
-            for m in moves:
-                distance = abs(m.destination.x - closest_human_pos.x) + abs(m.destination.y - closest_human_pos.y)  # calculate manhattan distance
-
-                # If distance is closer, that's our new choice!
-                if distance < move_distance:  
-                    move_distance = distance
-                    move_choice = m
-
-            choices.append(move_choice)  # add the choice to the list
+            choices.append(new_action)  # add the choice to the list
 
         return choices
 
@@ -112,7 +109,6 @@ class VestZombieStrategy(Strategy):
                 possible_moves: dict[str, list[MoveAction]],
                 game_state: GameState
         ) -> MoveAction:
-            print("hello")
             p1 = Position(64, 42)
             p2 = Position(34, 42)
             p3 = Position(11, 41)
@@ -153,7 +149,7 @@ class VestZombieStrategy(Strategy):
         possible_moves: dict[str, list[MoveAction]],
         game_state: GameState,        
         ) -> MoveAction:
-        if game_state.turn < 50:
+        if game_state.turn < 20:
             choices = self.set_up_initial_diamond(possible_moves, game_state)
         else: 
             choices = self.regular_move(possible_moves, game_state)
