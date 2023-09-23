@@ -14,6 +14,59 @@ from game.util.position import Position
 
 class VestZombieStrategy(Strategy):
 
+
+    def find_obstacles( # returns a set with all coordinates in coord_str format with obstacles
+        self,
+        game_state: GameState
+    ) -> set[str]:
+        obstacle_set = set({})
+        for [terrain_id, terrain_obj] in game_state.terrains.items():
+            pos = terrain_obj.position
+            obstacle_set.add(f"{pos.x},{pos.y}")
+        return obstacle_set
+
+    def simple_bfs( # returns the next value that the start position should move to reach the goal given a move speed of step
+        self,
+        goal: Position,
+        start: Position,
+        game_state: GameState,
+        move_speed: int
+    ) -> Position:
+
+        if (goal.x == start.x) and (goal.y == start.y): # if we are already on the goal, return the goal itself
+            return goal
+        obstacle_set = self.find_obstacles(game_state)
+        position_queue = [tuple([goal if i == 0 else None for i in range(move_speed + 1)])] # format of tuple (curr, 1 before curr, 2 before curr, 3 before curr, etc depending on move_speed)
+
+        visited_set = {f"{goal.x},{goal.y}"}
+
+        return_position = None
+        while position_queue and return_position == None:
+            node_tuple = position_queue.pop(0)
+            curr = node_tuple[0]
+            p_left = Position(curr.x - 1, curr.y)
+            p_right = Position(curr.x + 1, curr.y)
+            p_up = Position(curr.x, curr.y + 1)
+            p_down = Position(curr.x, curr.y - 1)
+            p_list = [p_left, p_right, p_up, p_down]
+            for p in p_list:
+                new_tuple = tuple([p if i == 0 else node_tuple[i - 1] for i in range(move_speed + 1)])
+                if p.x == start.x and p.y == start.y:
+                    offset = 0
+                    return_position = new_tuple[move_speed - offset]
+                    while return_position == None:
+                        offset += 1
+                        return_position = node_tuple[move_speed - offset]
+                    break
+                coord_str = f"{p.x},{p.y}"
+                has_visited = coord_str in visited_set
+                is_obstacle = coord_str in obstacle_set
+                if (not has_visited) and (not is_obstacle):
+                    position_queue.append(new_tuple)
+                    visited_set.add(coord_str)
+        #print(f"{start.x},{start.y} is moving to {return_position.x},{return_position.y} for goal {goal.x},{goal.y}")
+        return return_position
+
     def regular_move(
         self, 
         possible_moves: dict[str, list[MoveAction]],
@@ -60,11 +113,11 @@ class VestZombieStrategy(Strategy):
                 game_state: GameState
         ) -> MoveAction:
             print("hello")
-            p1 = Position(50, 47)
-            p2 = Position(45, 42)
-            p3 = Position(55, 42)
-            p4 = Position(60, 37)
-            p5 = Position(40, 37)
+            p1 = Position(64, 42)
+            p2 = Position(34, 42)
+            p3 = Position(11, 41)
+            p4 = Position(50, 41)
+            p5 = Position(98, 42)
             diamond_list = [p1, p2, p3, p4, p5]
             choices = []
 
@@ -75,10 +128,12 @@ class VestZombieStrategy(Strategy):
                 closest_goal = pos
                 closest_goal_distance = 1000
                 for i in diamond_list:
-                    distance = abs(i.position.x - pos.x) + abs(i.position.y - pos.y)
+                    distance = abs(i.x - pos.x) + abs(i.y - pos.y)
                     if distance < closest_goal_distance:
                         closest_goal = i
                         closest_goal_distance = distance
+                if closest_goal in diamond_list:
+                    diamond_list.remove(closest_goal)
                 move_distance = 1000
                 move_choice = moves[0]
                 for m in moves:
@@ -86,7 +141,10 @@ class VestZombieStrategy(Strategy):
                     if distance < move_distance:  
                         move_distance = distance
                         move_choice = m
-                choices.append[move_choice]
+                if f"{pos.x},{pos.y}" in [f"{move_choice.destination.x},{move_choice.destination.y}"]:
+                    choices = self.regular_move(possible_moves, game_state)
+                    return choices
+                choices.append(move_choice)
             return choices
                 
                             
@@ -95,10 +153,9 @@ class VestZombieStrategy(Strategy):
         possible_moves: dict[str, list[MoveAction]],
         game_state: GameState,        
         ) -> MoveAction:
-        print("entering decidemoves")
-        if game_state.turn < 20:
+        if game_state.turn < 50:
             choices = self.set_up_initial_diamond(possible_moves, game_state)
-        else:
+        else: 
             choices = self.regular_move(possible_moves, game_state)
         return choices
 
