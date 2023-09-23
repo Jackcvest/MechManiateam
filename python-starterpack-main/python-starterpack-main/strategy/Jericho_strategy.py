@@ -94,30 +94,41 @@ class TestSetupStrategy(Strategy):
         p1 = Position(41, 43)
         p2 = Position(50, 43)
         p3 = Position(59, 43)
-        p4 = Position(70, 44)
-        p5 = Position(71, 43)
-        barricade_list = [p1, p2, p3, p4, p5]
+
+        barricade_list = [p1, p2, p3]
+
+        obstacle_set = self.find_obstacles(game_state)
+        for barricade in barricade_list:
+            str_pos = f"{barricade.x},{barricade.y}"
+            if str_pos in obstacle_set:
+                barricade_list.remove(barricade)
 
         choices = []
         for [character_id, moves] in possible_moves.items():
             if len(moves) == 0:
                 continue
             pos = game_state.characters[character_id].position
-        
-            if game_state.characters[character_id].class_type == CharacterClassType.BUILDER:
-                min_distance = 1234
-                closest_barricade = barricade_list[0]
-                for p in barricade_list: # finds the closest barricade position and sets it to new position
-                    distance = abs(p.x - pos.x) + abs(p.x - pos.x)
-                    if distance < min_distance:
-                        min_distance = distance
-                        p_to_move_to = p
-                barricade_list.remove(p_to_move_to)
-                new_pos = self.simple_bfs(p_to_move_to, pos, game_state, 3)
+
+            is_builder = game_state.characters[character_id].class_type == CharacterClassType.BUILDER
+            if is_builder:
+                if len(barricade_list) == 0: # if nothing to be built, move to bottom right
+                    is_builder = False
+                else:
+                    min_distance = 1234
+                    closest_barricade = barricade_list[0]
+                    for p in barricade_list: # finds the closest barricade position and sets it to new position
+                        distance = abs(p.x - pos.x) + abs(p.x - pos.x)
+                        if distance < min_distance:
+                            min_distance = distance
+                            p_to_move_to = p
+                    barricade_list.remove(p_to_move_to)
+                    new_pos = self.simple_bfs(p_to_move_to, pos, game_state, 3)
+                    new_action = MoveAction(character_id, new_pos)
+                    choices.append(new_action)
+            if not is_builder: # run to bottom right
+                bot_right = Position(64, 75)
+                new_pos = self.simple_bfs(bot_right, pos, game_state, 3)
                 new_action = MoveAction(character_id, new_pos)
-                choices.append(new_action)
-            else: # don't move anywhere
-                new_action = MoveAction(character_id, pos)
                 choices.append(new_action)
 
                 
