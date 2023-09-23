@@ -12,7 +12,7 @@ from strategy.strategy import Strategy
 from game.util.position import Position
 
 
-class SimpleZombieStrategy(Strategy):
+class VestZombieStrategy(Strategy):
 
     
     def regular_move(
